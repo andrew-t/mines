@@ -3,7 +3,6 @@ const defults = {
 	_knownSafe: false,
 	_knownMine: false,
 	_revealed: false,
-	_tentativeMine: false,
 	_number: 0
 };
 

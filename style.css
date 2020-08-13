@@ -27,48 +27,54 @@ mines-cell::after {
 	content: '⬜';
 }
 
-mines-cell.revealed.tentativeMine::after,
 mines-cell.revealed.knownMine::after {
 	content: '💥' !important;
 }
 mines-cell.revealed[number="0"]::after {
-	content: '0️⃣';
+	content: '0';
 }
 mines-cell.revealed[number="1"]::after {
-	content: '1️⃣';
+	content: '1';
 }
 mines-cell.revealed[number="2"]::after {
-	content: '2️⃣';
+	content: '2';
 }
 mines-cell.revealed[number="3"]::after {
-	content: '3️⃣';
+	content: '3';
 }
 mines-cell.revealed[number="4"]::after {
-	content: '4️⃣';
+	content: '4';
 }
 mines-cell.revealed[number="5"]::after {
-	content: '5️⃣';
+	content: '5';
 }
 mines-cell.revealed[number="6"]::after {
-	content: '6️⃣';
+	content: '6';
 }
 mines-cell.revealed[number="7"]::after {
-	content: '7️⃣';
+	content: '7';
 }
 mines-cell.revealed[number="8"]::after {
-	content: '8️⃣';
+	content: '8';
 }
 
 mines-cell:not(.revealed).flagged::after {
 	content: '⛳';
 }
 
-.gameOver mines-cell.tentativeMine::after,
 .gameOver mines-cell.knownMine::after {
 	content: '☠';
 }
 
-.gameOver mines-cell.flagged.tentativeMine::after,
 .gameOver mines-cell.flagged.knownMine::after {
 	content: '💀';
 }
+
+/* some cheating now: */
+mines-cell.knownMine {
+	background-color: red !important;
+}
+mines-cell.knownSafe {
+	background-color: green !important;
+}
+/* cheating over */

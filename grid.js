@@ -1,4 +1,5 @@
 import './cell.js';
+import LogicGrid from './logic-grid.js';
 
 export default class Grid extends HTMLElement {
 
@@ -7,48 +8,51 @@ export default class Grid extends HTMLElement {
 		this.width = parseInt(this.getAttribute('width'), 10);
 		this.height = parseInt(this.getAttribute('height'), 10);
 		this.mineCount = parseInt(this.getAttribute('mines'), 10);
+
+		this.logicGrid = new LogicGrid(this.width, this.height, this.mineCount);
+
 		this.innerHTML = `
 			<table><tbody></tbody></table>
 			<div><span id="flagged">0</span> flagged out of ${this.mineCount}</div>
 		`;
 		const tbody = this.querySelector('tbody'),
 			flaggedSpan = this.querySelector('#flagged');
-		this.cells = [];
+
+		this.cellements = [];
 		for (let y = 0; y < this.height; ++y) {
-			const row = this.cells[y] = [],
+			const row = this.cellements[y] = [],
 				tr = document.createElement('tr');
 			tbody.appendChild(tr);
 			for (let x = 0; x < this.width; ++x) {
 				const td = document.createElement('td');
-				const cell = row[x] = document.createElement('mines-cell');
-				cell.x = x;
-				cell.y = y;
-				td.appendChild(cell);
+				const cellement = row[x] = document.createElement('mines-cell');
+				cellement.x = x;
+				cellement.y = y;
+				td.appendChild(cellement);
 				tr.appendChild(td);
-				cell.addEventListener('contextmenu', e => {
+				cellement.addEventListener('contextmenu', e => {
 					e.preventDefault();
-					cell.flagged = !cell.flagged;
+					cellement.flagged = !cellement.flagged;
 					let f = 0;
 					for (const cell of this.allCells())
 						if (cell.flagged) ++f;
 					flaggedSpan.innerHTML = f;
 				});
-				cell.addEventListener('click', e => {
+				cellement.addEventListener('click', e => {
 					e.preventDefault();
-					if (e.which != 1 || cell.flagged)
+					if (e.which != 1 || cellement.flagged)
 						return;
-					if (cell.revealed) {
+					if (cellement.revealed) {
 						let n = 0;
-						for (const neighbour of this.neighbourCells(cell))
+						for (const neighbour of this.neighbourCells(cellement))
 							if (neighbour.flagged) ++n;
-						if (n == cell.number)
-							for (const neighbour of this.neighbourCells(cell))
+						if (n == cellement.number)
+							for (const neighbour of this.neighbourCells(cellement))
 								if (!neighbour.flagged)
 									this.reveal(neighbour);
-						else console.log(`Not revealing as number is ${cell.number} but only ${n} flags`, cell);
-					} else{
-						this.reveal(cell);
-					}
+						else console.log(`Not revealing as number is ${cellement.number} but only ${n} flags`, cell);
+					} else
+						this.reveal(cellement);
 				});
 			}
 		}
@@ -56,15 +60,15 @@ export default class Grid extends HTMLElement {
 		button(this, 'Reveal', () => {
 			for (const cell of this.allCells())
 				cell.revealed = true;
-		})
+		});
 	}
 
 	connectedCallback() {
-		this.arrangeMines();
+		this.render();
 	}
 
 	cell(x, y) {
-		return this.cells[y]?.[x]
+		return this.cellements[y]?.[x]
 			|| { knownSafe: true };
 	}
 
@@ -85,79 +89,38 @@ export default class Grid extends HTMLElement {
 	}
 
 	*allCells() {
-		for (const row of this.cells)
+		for (const row of this.cellements)
 			for (const cell of row)
 				yield cell;
 	}
 
 	reveal(cell) {
-		console.log(`Revealing (${cell?.x}, ${cell?.y})`, cell);
-		if (!cell || cell.revealed) return;
+		const logicCell = this.logicGrid.cell(cell.x, cell.y);
+		if (!logicCell || logicCell.revealed) return;
+		console.log(`Revealing (${cell?.x}, ${cell?.y})`, logicCell, cell);
+		this.logicGrid.reveal(logicCell);
 		cell.revealed = true;
 		// TODO: catch unknown mines:
-		if (cell.knownMine || cell.tentativeMine)
+		if (logicCell.knownMine) {
 			this.classList.add('gameOver');
-		else if (cell.number == 0)
-			for (const n of this.neighbourCells(cell))
-				this.reveal(n);
+			this.logicGrid = this.logicGrid.generatePossibleMines();
+		}
+		this.render();
 	}
 
-	arrangeMines() {
-		// TODO: this needs to be way smarter
-		let minesLeft = this.mineCount;
-		for (const cell of this.cells)
-			if (cell.knownMine) --minesLeft;
-		const candidates = [ ...this.allCells() ]
-			.filter(c => !c.knownMine && !c.knownSafe);
-		shuffle(candidates);
-		candidates.forEach((cell, i) => cell.tentativeMine = i < minesLeft);
-
-		// update numbers:
+	render() {
 		for (const cell of this.allCells()) {
-			let n = 0;
-			for (const neighbour of this.neighbourCells(cell))
-				if (neighbour.knownMine || neighbour.tentativeMine)
-					++n;
-			cell.number = n;
+			const logicCell = this.logicGrid.cell(cell.x, cell.y);
+			cell.knownMine = logicCell.knownMine;
+			cell.knownSafe = logicCell.knownSafe;
+			cell.revealed = logicCell.revealed;
+			cell.number = logicCell.number;
 		}
-
-		// update knowledge:
-		// const cellsInPlay = [],
-		// 	periphery = [],
-		// 	revealed = [],
-		// 	known = [];
-		// for (const cell of this.allCells())
-		// 	if (cell.known) known.push(cell);
-		// 	else if (cell.revealed) revealed.push(cell);
-		// 	else {
-		// 		let peripheral = true;
-		// 		for (const n of this.neighbourCells(cell))
-		// 			if (n.revealed) {
-		// 				peripheral = false;
-		// 				cellsInPlay.push(cell);
-		// 				break;
-		// 			}
-		// 		if (peripheral) periphery.push(cell);
-		// 	}
-		// // We know about the revealed cells by definition:
-		// for (const cell of revealed) {
-		// 	if (!cell.knownMine && cell.tentativeMine) cell.knownMine = true;
-		// 	else if (!cell.knownMine) cell.knownSafe = true;
-		// 	known.push(cell);
-		// }
-		// // for ()
 	}
 
 }
 
 window.customElements.define('mines-grid', Grid);
-
-function shuffle(arr) {
-	for (let i = 0; i < arr.length - 1; ++i) {
-		const r = i + 1 + ~~(Math.random() * (arr.length - i - 1));
-		[ arr[r], arr[i] ] = [ arr[i], arr[r] ];
-	}
-}
 
 function button(parent, text, callback) {
 	const button = document.createElement('button');
