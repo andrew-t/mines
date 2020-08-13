@@ -7,8 +7,12 @@ export default class Grid extends HTMLElement {
 		this.width = parseInt(this.getAttribute('width'), 10);
 		this.height = parseInt(this.getAttribute('height'), 10);
 		this.mineCount = parseInt(this.getAttribute('mines'), 10);
-		this.innerHTML = `<table><tbody></tbody></table>`;
-		const tbody = this.querySelector('tbody');
+		this.innerHTML = `
+			<table><tbody></tbody></table>
+			<div><span id="flagged">0</span> flagged out of ${this.mineCount}</div>
+		`;
+		const tbody = this.querySelector('tbody'),
+			flaggedSpan = this.querySelector('#flagged');
 		this.cells = [];
 		for (let y = 0; y < this.height; ++y) {
 			const row = this.cells[y] = [],
@@ -24,6 +28,10 @@ export default class Grid extends HTMLElement {
 				cell.addEventListener('contextmenu', e => {
 					e.preventDefault();
 					cell.flagged = !cell.flagged;
+					let f = 0;
+					for (const cell of this.allCells())
+						if (cell.flagged) ++f;
+					flaggedSpan.innerHTML = f;
 				});
 				cell.addEventListener('click', e => {
 					e.preventDefault();
@@ -31,10 +39,10 @@ export default class Grid extends HTMLElement {
 						return;
 					if (cell.revealed) {
 						let n = 0;
-						for (const neighbour of this.neighbourCells(x, y))
+						for (const neighbour of this.neighbourCells(cell))
 							if (neighbour.flagged) ++n;
 						if (n == cell.number)
-							for (const neighbour of this.neighbourCells(x, y))
+							for (const neighbour of this.neighbourCells(cell))
 								if (!neighbour.flagged)
 									this.reveal(neighbour);
 						else console.log(`Not revealing as number is ${cell.number} but only ${n} flags`, cell);
@@ -60,6 +68,7 @@ export default class Grid extends HTMLElement {
 			|| { knownSafe: true };
 	}
 
+	// todo: collapse into neighbourCells?
 	*neighbours(x, y) {
 		for (let dx = -1; dx < 2; ++dx)
 			for (let dy = -1; dy < 2; ++dy)
@@ -70,8 +79,8 @@ export default class Grid extends HTMLElement {
 				}
 	}
 
-	*neighbourCells(x, y) {
-		for (const [nx, ny] of this.neighbours(x, y))
+	*neighbourCells(cell) {
+		for (const [nx, ny] of this.neighbours(cell.x, cell.y))
 			yield this.cell(nx, ny);
 	}
 
@@ -91,7 +100,7 @@ export default class Grid extends HTMLElement {
 				cell.gameOver = true;
 		}
 		else if (cell.number == 0)
-			for (const n of this.neighbourCells(cell.x, cell.y))
+			for (const n of this.neighbourCells(cell))
 				this.reveal(n);
 	}
 
@@ -105,14 +114,14 @@ export default class Grid extends HTMLElement {
 		shuffle(candidates);
 		candidates.forEach((cell, i) => cell.tentativeMine = i < minesLeft);
 
-		for (let x = 0; x < this.width; ++x)
-			for (let y = 0; y < this.height; ++y) {
-				let n = 0;
-				for (const cell of this.neighbourCells(x, y))
-					if (cell.knownMine || cell.tentativeMine)
-						++n;
-				this.cell(x, y).number = n;
-			}
+		// update numbers:
+		for (const cell of this.allCells()) {
+			let n = 0;
+			for (const neighbour of this.neighbourCells(cell))
+				if (neighbour.knownMine || neighbour.tentativeMine)
+					++n;
+			cell.number = n;
+		}
 	}
 
 }

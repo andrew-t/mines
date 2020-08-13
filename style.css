@@ -1,9 +1,22 @@
+table {
+	border-collapse: collapse;
+}
+
+td {
+	padding: 0;
+	margin: 0;
+}
+
 mines-cell {
 	width: 32px;
 	height: 32px;
-	border: 1px solid black;
 	font-size: 24px;
 	display: inline-block;
+	transition: all 200ms;
+}
+
+mines-cell::hover {
+	background-color: #ddd;
 }
 
 mines-grid {
