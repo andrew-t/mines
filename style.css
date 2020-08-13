@@ -15,10 +15,60 @@ mines-cell {
 	transition: all 200ms;
 }
 
-mines-cell::hover {
+mines-cell:hover {
 	background-color: #ddd;
 }
 
 mines-grid {
 	user-select: none;
+}
+
+mines-cell::after {
+	content: '⬜';
+}
+
+mines-cell.revealed.tentativeMine::after,
+mines-cell.revealed.knownMine::after {
+	content: '💥' !important;
+}
+mines-cell.revealed[number="0"]::after {
+	content: '0️⃣';
+}
+mines-cell.revealed[number="1"]::after {
+	content: '1️⃣';
+}
+mines-cell.revealed[number="2"]::after {
+	content: '2️⃣';
+}
+mines-cell.revealed[number="3"]::after {
+	content: '3️⃣';
+}
+mines-cell.revealed[number="4"]::after {
+	content: '4️⃣';
+}
+mines-cell.revealed[number="5"]::after {
+	content: '5️⃣';
+}
+mines-cell.revealed[number="6"]::after {
+	content: '6️⃣';
+}
+mines-cell.revealed[number="7"]::after {
+	content: '7️⃣';
+}
+mines-cell.revealed[number="8"]::after {
+	content: '8️⃣';
+}
+
+mines-cell:not(.revealed).flagged::after {
+	content: '⛳';
+}
+
+.gameOver mines-cell.tentativeMine::after,
+.gameOver mines-cell.knownMine::after {
+	content: '☠';
+}
+
+.gameOver mines-cell.flagged.tentativeMine::after,
+.gameOver mines-cell.flagged.knownMine::after {
+	content: '💀';
 }

@@ -95,10 +95,8 @@ export default class Grid extends HTMLElement {
 		if (!cell || cell.revealed) return;
 		cell.revealed = true;
 		// TODO: catch unknown mines:
-		if (cell.knownMine || cell.tentativeMine) {
-			for (const cell of this.allCells())
-				cell.gameOver = true;
-		}
+		if (cell.knownMine || cell.tentativeMine)
+			this.classList.add('gameOver');
 		else if (cell.number == 0)
 			for (const n of this.neighbourCells(cell))
 				this.reveal(n);
@@ -122,6 +120,32 @@ export default class Grid extends HTMLElement {
 					++n;
 			cell.number = n;
 		}
+
+		// update knowledge:
+		// const cellsInPlay = [],
+		// 	periphery = [],
+		// 	revealed = [],
+		// 	known = [];
+		// for (const cell of this.allCells())
+		// 	if (cell.known) known.push(cell);
+		// 	else if (cell.revealed) revealed.push(cell);
+		// 	else {
+		// 		let peripheral = true;
+		// 		for (const n of this.neighbourCells(cell))
+		// 			if (n.revealed) {
+		// 				peripheral = false;
+		// 				cellsInPlay.push(cell);
+		// 				break;
+		// 			}
+		// 		if (peripheral) periphery.push(cell);
+		// 	}
+		// // We know about the revealed cells by definition:
+		// for (const cell of revealed) {
+		// 	if (!cell.knownMine && cell.tentativeMine) cell.knownMine = true;
+		// 	else if (!cell.knownMine) cell.knownSafe = true;
+		// 	known.push(cell);
+		// }
+		// // for ()
 	}
 
 }
