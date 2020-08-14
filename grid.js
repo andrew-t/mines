@@ -46,11 +46,12 @@ export default class Grid extends HTMLElement {
 						let n = 0;
 						for (const neighbour of this.neighbourCells(cellement))
 							if (neighbour.flagged) ++n;
-						if (n == cellement.number)
+						const cell = this.logicGrid.cell(x, y);
+						if (n == cell.number)
 							for (const neighbour of this.neighbourCells(cellement))
 								if (!neighbour.flagged)
 									this.reveal(neighbour);
-						else console.log(`Not revealing as number is ${cellement.number} but only ${n} flags`, cell);
+						else console.log(`Not revealing as number is ${cell.number} but only ${n} flags`, cell);
 					} else
 						this.reveal(cellement);
 				});

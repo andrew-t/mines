@@ -1,0 +1,14 @@
+{
+  "name": "mines",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Andrew <git@andrewt.net>",
+  "license": "MIT",
+  "type": "module",
+  "devDependencies": {
+    "mocha": "^8.1.1"
+  },
+  "scripts": {
+    "test": "mocha"
+  }
+}
