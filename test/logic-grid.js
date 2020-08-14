@@ -84,6 +84,43 @@ describe('Logic grid', () => {
             ?111
         `);
     });
+
+    it('should combine steps', () => {
+        const g = grid(4, `
+            ?2??
+            ????
+            ?311
+        `);
+        g.updateKnowledge(false);
+        expectGrid(g, `
+            ?2??
+            ????
+            ?311
+        `);
+        g.updateKnowledge(true);
+        expectGrid(g, `
+            -2-*
+            *-*-
+            *311
+        `);
+    });
+
+    it('should reveal cells', () => {
+        const g = grid(20, `
+            ?21112*?10
+            ???-??-?31
+            2*22222**1
+            2221*33332
+            1*112**11*
+            1221122111
+            02*2000111
+            02*20001*2
+            012332112*
+            001***1011
+        `);
+        g.reveal(g.cell(6, 1));
+        console.log(g.toString());
+    });
 });
 
 function expectGrid(grid, str) {

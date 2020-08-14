@@ -35,7 +35,7 @@ export default class LogicGrid {
 
 	cell(x, y) {
 		return this.cells[y]?.[x]
-			|| { knownSafe: true };
+			|| { knownSafe: true, revealed: true };
 	}
 
 	// todo: collapse into neighbourCells?
@@ -122,10 +122,21 @@ export default class LogicGrid {
     }
 
     generatePossibleMines() {
+        const beforeLoop = this.toString();
+        let iterations = 10;
         mainLoop:
         while (true) {
+            if (!--iterations) {
+                console.error('Infinite loop suspected. Input:', beforeLoop);
+                throw new Error('Inifinite loop suspected');
+            }
             const grid = this.clone();
+            let subIters = 40;
             while (!grid.done) {
+                if (!--subIters) {
+                    console.error('Infinite loop suspected. Input:', beforeLoop, 'current:', grid.toString());
+                    throw new Error('Inifinite loop suspected');
+                }
                 grid.guessMine();
                 if (grid.invalid) continue mainLoop;
             }
@@ -137,12 +148,12 @@ export default class LogicGrid {
     }
 
     check() {
-        console.log('check: \n\n' + this.toString());
+        // console.log('check: \n\n' + this.toString());
         let mines = 0;
         for (const cell of this.allCells())
             if (cell.knownMine) ++mines;
             else if (!cell.knownSafe) {
-                console.log('Invalid — cell is mine and safe', cell);
+                // console.log('Invalid — cell is mine and safe', cell);
                 return false;
             }
             else if (cell.revealed) {
@@ -150,15 +161,15 @@ export default class LogicGrid {
                 for (const nc of this.neighbourCells(cell))
                     if (nc.knownMine) ++n;
                 if (n != cell.number) {
-                    console.log(`Invalid — expected ${cell.number} mines but found ${n}`, cell);
+                    // console.log(`Invalid — expected ${cell.number} mines but found ${n}`, cell);
                     return false;
                 }
             }
         if (mines != this.mineCount) {
-            console.log(`Invalid — expected ${this.mineCount} mines but found ${mines}`);
+            // console.log(`Invalid — expected ${this.mineCount} mines but found ${mines}`);
             return false;
         }
-        console.log('Valid grid');
+        // console.log('Valid grid');
         return true;
     }
 
@@ -180,13 +191,15 @@ export default class LogicGrid {
     makeMine(cell) {
         // if (!this.parent) console.trace(`Setting a mine`, cell);
         cell.knownMine = true;
-        --this.missingMines;
+        if (--this.missingMines == 0)
+            this.done = true;
     }
     
     makeSafe(cell) {
         // if (!this.parent) console.trace(`Marking safe`, cell);
         cell.knownSafe = true;
-        --this.missingSafes;
+        if (--this.missingSafes == 0)
+            this.done = true;
     }
     
     updateNumbers() {
@@ -220,9 +233,16 @@ export default class LogicGrid {
 				if (peripheral) periphery.push(cell);
             }
 
-        let learnedAnything = true;
+        let learnedAnything = true,
+            iterations = 10;
+        // just for debug:
+        const beforeLoop = this.toString();
         mainLoop:
         while (learnedAnything) {
+            if (!--iterations) {
+                console.error('Infinite loop suspected. Input:', beforeLoop);
+                throw new Error('Inifinite loop suspected');
+            }
             learnedAnything = false;
         
             // learn about any obviously safe or mine squares:
@@ -302,7 +322,6 @@ export default class LogicGrid {
                 for (const cell of this.allCells())
                     if (!cell.knownMine && !cell.knownSafe)
                         this.makeMine(cell);
-                this.done = true;
                 this.updateNumbers();
                 return;
             }
@@ -310,7 +329,6 @@ export default class LogicGrid {
                 for (const cell of this.allCells())
                     if (!cell.knownMine && !cell.knownSafe)
                         this.makeSafe(cell);
-                this.done = true;
                 this.updateNumbers();
                 return;
             }
