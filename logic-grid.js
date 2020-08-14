@@ -89,9 +89,12 @@ export default class LogicGrid {
 	reveal(cell) {
 		if (cell.revealed) return;
 
+		// console.log('resolvo', cell);
 		if (!cell.knownMine && !cell.knownSafe) {
 			// before we can proceed we need to work out what this cell is/could be
+		// console.log('resolvarina');
 			this.resolveCell(cell);
+			// console.log('resolvomaton', cell);
 		}
 
 		if (cell.knownMine) {
@@ -118,6 +121,7 @@ export default class LogicGrid {
 			return;
 		}
 
+		console.error('Error revealing cell', cell);
 		throw new Error('Error revealing cell');
 	}
 
@@ -125,17 +129,44 @@ export default class LogicGrid {
 		// was there a safe space you could have clicked?
 		for (const betterCell of this.allCells())
 			if (betterCell.knownSafe && !betterCell.revealed) {
-				const assumeMine = this.clone();
-				assumeMine.makeMine(assumeMine.cell(cell.x, cell.y));
-				assumeMine.updateKnowledge({
-					runHypotheticals: true,
-					exhaustive: true
-				});
-				if (!assumeMine.invalid) {
-					this.makeMine(cell, `Made a mine because the user clicked it when there was a safe space at ${betterCell.x}, ${betterCell.y}`);
-					return;
-				}
+				this.makeMine(cell, `Made a mine because the user clicked it when there was a safe space at ${betterCell.x}, ${betterCell.y}`);
+				return;
 			}
+		
+		// can we find one exhaustively?
+		let anyDidntUseAllTheMines = false;
+		const cellsInPlay = [ ...this.cellsInPlay() ],
+			someOtherCell = [ ...this.allCells() ]
+				.find(x => !x.revealed && !x.knownMine && !x.knownSafe && !cellsInPlay.includes(x));
+
+		// quick shortcut for things we *obviously* can't do but would take ages to check
+		if (cellsInPlay.length < this.missingMines) {
+			this.makeSafe(cell, `There aren’t enough cells in play for this not to be safe`);
+			return;
+		}
+
+		// console.log('Cells in play', this.toString(), cellsInPlay.length);
+		for (const betterCell of this.cellsInPlay()) {
+			// console.log('lets check', betterCell)
+			const assumeMine = this.clone();
+			assumeMine.makeMine(assumeMine.cell(cell.x, cell.y));
+			assumeMine.updateKnowledge({
+				runHypotheticals: true,
+				exhaustive: true
+			});
+			if (assumeMine.invalid) {
+				this.makeMine(cell, `Made a mine because the user clicked it when (after an exhaustive search) there was a safe space at ${betterCell.x}, ${betterCell.y}`);
+				return;
+			}
+			if (!assumeMine.done || someOtherCell?.knownMine)
+				anyDidntUseAllTheMines = true;
+			// console.log(assumeMine.toString());
+		}
+		if (!anyDidntUseAllTheMines && someOtherCell) {
+			// console.log('gogogo', someOtherCell)
+			this.makeMine(cell, `Made a mine because the not-in-play cells must be safe`);
+			return;
+		}
 
 		const ifMine = this.clone(),
 			ifSafe = this.clone();
@@ -178,7 +209,7 @@ export default class LogicGrid {
 
 	generatePossibleMines() {
 		this.updateKnowledge({ runHypotheticals: true });
-		const beforeLoop = this.toString();
+		// const beforeLoop = this.toString();
 		let iterations = 10;
 		mainLoop:
 		while (true) {
@@ -187,7 +218,7 @@ export default class LogicGrid {
 				throw new Error('Infinite loop suspected');
 			}
 			const grid = this.clone();
-			let subIters = 40;
+			let subIters = 400;
 			while (!grid.done) {
 				if (!--subIters) {
 					// console.error('Infinite loop suspected. Input:', beforeLoop, 'current:', grid.toString());
@@ -252,16 +283,24 @@ export default class LogicGrid {
 
 	makeMine(cell, reason) {
 		// if (!this.parent) console.trace(`Setting a mine`, cell);
+		if (cell.knownSafe) throw new Error('Making a safe space a mine');
 		cell.knownMine = true;
-		if (reason) cell.reason = reason;
+		if (reason) {
+			cell.reason = reason;
+			// console.log(cell.x, cell.y, reason);
+		}
 		if (--this.missingMines == 0)
 			this.done = true;
 	}
 	
 	makeSafe(cell, reason) {
 		// if (!this.parent) console.trace(`Marking safe`, cell);
+		if (cell.knownMine) throw new Error('Making a mine safe');
 		cell.knownSafe = true;
-		if (reason) cell.reason = reason;
+		if (reason) {
+			cell.reason = reason;
+			// console.log(cell.x, cell.y, reason);
+		}
 		if (--this.missingSafes == 0)
 			this.done = true;
 	}
@@ -276,7 +315,10 @@ export default class LogicGrid {
 			}
 	}
 
-	updateKnowledge({ runHypotheticals, exhaustive }) {
+	updateKnowledge({ runHypotheticals, exhaustive, depth }) {
+		if (!depth) depth = 1;
+		// console.log('uk depth =', depth);
+
 		// sort cells into categories:
 		const cellsInPlay = [],
 			periphery = [],
@@ -336,13 +378,15 @@ export default class LogicGrid {
 				if (unknowns.length > 0) {
 					if (missingMines == 0) {
 						for (const n of unknowns) {
+							if (n.knownMine || n.knownSafe) throw new Error('what');
 							this.makeSafe(n, `Marked safe because the ${cell.number} at ${cell.x}, ${cell.y} is done`);
 							known.push(n);
 						}
 						learnedAnything = true;
 					}
-					if (missingSafes == 0) {
+					else if (missingSafes == 0) {
 						for (const n of unknowns) {
+							if (n.knownMine || n.knownSafe) throw new Error('what');
 							this.makeMine(n, `Marked a mine because the ${cell.number} at ${cell.x}, ${cell.y} is full`);
 							known.push(n);
 						}
@@ -352,12 +396,13 @@ export default class LogicGrid {
 			}
 
 			if (runHypotheticals && !learnedAnything) {
+				// console.log('cells in play', cellsInPlay.length);
 				for (const cell of cellsInPlay) {
 					if (cell.knownSafe || cell.knownMine) continue;
 					// console.log('Running hypotheticals', this.toString(), cell);
 					const ifMine = this.clone();
 					ifMine.makeMine(ifMine.cell(cell.x, cell.y));
-					ifMine.updateKnowledge({ runHypotheticals: exhaustive, exhaustive });
+					ifMine.updateKnowledge({ runHypotheticals: exhaustive, exhaustive, depth: depth + 1 });
 					if (ifMine.invalid) {
 						// console.log('Impossible mine:', cell,
 						//     `\nthis:\n${this.toString()}`,
@@ -367,9 +412,10 @@ export default class LogicGrid {
 						learnedAnything = true;
 						continue mainLoop;
 					}
+					if (cell.knownSafe || cell.knownMine) continue;
 					const ifSafe = this.clone();
 					ifSafe.makeSafe(ifSafe.cell(cell.x, cell.y));
-					ifSafe.updateKnowledge({ runHypotheticals: exhaustive, exhaustive });
+					ifSafe.updateKnowledge({ runHypotheticals: exhaustive, exhaustive, depth: depth + 1 });
 					if (ifSafe.invalid) {
 						// console.log('Impossible safe:', cell,
 						//     `\nthis:\n${this.toString()}`,
@@ -379,6 +425,10 @@ export default class LogicGrid {
 						learnedAnything = true;
 						continue mainLoop;
 					}
+					// we don't need to loop if we're doing exhaustive searches
+					// because that would just make it check every combination
+					// in every order which is just overkill
+					if (exhaustive) break;
 				}
 			}
 

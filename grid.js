@@ -97,6 +97,15 @@ export default class Grid extends HTMLElement {
 
 	reveal(cell) {
 		const logicCell = this.logicGrid.cell(cell.x, cell.y);
+
+		// rig it so the first click is always zero
+		if (!this.revealedAny) {
+			this.logicGrid.makeSafe(logicCell);
+			for (const cell of this.logicGrid.neighbourCells(logicCell))
+				this.logicGrid.makeSafe(cell);
+			this.revealedAny = true;
+		}
+
 		if (!logicCell || logicCell.revealed) return;
 		console.log(`Revealing (${cell?.x}, ${cell?.y})`, logicCell, cell);
 		this.logicGrid.reveal(logicCell);

@@ -59,15 +59,15 @@ mines-cell.revealed[number="8"]::after {
 }
 
 mines-cell:not(.revealed).flagged::after {
-	content: '⛳';
+	content: '🚩';
 }
 
 .gameOver mines-cell.knownMine::after {
-	content: '☠';
+	content: '💀';
 }
 
 .gameOver mines-cell.flagged.knownMine::after {
-	content: '💀';
+	content: '🏴‍☠️';
 }
 
 /* some cheating now: */
