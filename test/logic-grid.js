@@ -106,20 +106,23 @@ describe('Logic grid', () => {
     });
 
     it('should reveal cells', () => {
-        const g = grid(20, `
-            ?21112*?10
-            ???-??-?31
-            2*22222**1
-            2221*33332
-            1*112**11*
-            1221122111
-            02*2000111
-            02*20001*2
-            012332112*
-            001***1011
-        `);
-        g.reveal(g.cell(6, 1));
-        console.log(g.toString());
+        // this failed intermittently so if it works 100 times without infinite looping we're good
+        for (let i = 0; i < 100; ++i) {
+            const g = grid(20, `
+                ?21112*?10
+                ???-??-?31
+                2*22222**1
+                2221*33332
+                1*112**11*
+                1221122111
+                02*2000111
+                02*20001*2
+                012332112*
+                001***1011
+            `);
+            g.reveal(g.cell(6, 1));
+            assert.ok(g.check());
+        }
     });
 });
 
