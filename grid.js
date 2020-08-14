@@ -13,10 +13,12 @@ export default class Grid extends HTMLElement {
 
 		this.innerHTML = `
 			<table><tbody></tbody></table>
-			<div><span id="flagged">0</span> flagged out of ${this.mineCount}</div>
+			<div><span id="flagged">0</span> mines flagged out of ${this.mineCount}</div>
+			<div><span id="revealed">0</span> safe spaces found out of ${this.width * this.height - this.mineCount}</div>
 		`;
 		const tbody = this.querySelector('tbody'),
 			flaggedSpan = this.querySelector('#flagged');
+		this.revealedSpan = this.querySelector('#revealed');
 
 		this.cellements = [];
 		for (let y = 0; y < this.height; ++y) {
@@ -125,6 +127,11 @@ export default class Grid extends HTMLElement {
 			cell.knownSafe = logicCell.knownSafe;
 			cell.revealed = logicCell.revealed;
 			cell.number = logicCell.number;
+			let n = 0;
+			for (const c of this.logicGrid.allCells())
+				if (c.revealed && c.knownSafe)
+					++n;
+			this.revealedSpan.innerHTML = n;
 		}
 	}
 

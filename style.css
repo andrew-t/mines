@@ -1,3 +1,7 @@
+body {
+	font-family: sans-serif;
+}
+
 table {
 	border-collapse: collapse;
 }
@@ -5,6 +9,7 @@ table {
 td {
 	padding: 0;
 	margin: 0;
+	line-height: 0;
 }
 
 mines-cell {
@@ -13,9 +18,10 @@ mines-cell {
 	font-size: 24px;
 	display: inline-block;
 	transition: all 200ms;
+	line-height: 1.25em;
 }
 
-mines-cell:hover {
+mines-cell:not(.revealed):hover {
 	background-color: #ddd;
 }
 
@@ -23,15 +29,24 @@ mines-grid {
 	user-select: none;
 }
 
-mines-cell::after {
-	content: '⬜';
+mines-cell:not(.revealed) {
+	background: #eee;
+	box-shadow: #888 0 0 5px inset;
 }
 
 mines-cell.revealed.knownMine::after {
 	content: '💥' !important;
 }
+mines-cell.revealed {
+	background: green;
+	text-align: center;
+}
+mines-cell.revealed::after {
+	width: 100%;
+}
 mines-cell.revealed[number="0"]::after {
 	content: '0';
+	opacity: 0;
 }
 mines-cell.revealed[number="1"]::after {
 	content: '1';
@@ -71,10 +86,10 @@ mines-cell:not(.revealed).flagged::after {
 }
 
 /* some cheating now: */
-mines-cell.knownMine {
+.cheat mines-cell.knownMine {
 	background-color: red !important;
 }
-mines-cell.knownSafe {
+.cheat mines-cell.knownSafe {
 	background-color: green !important;
 }
 /* cheating over */
