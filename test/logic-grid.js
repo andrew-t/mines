@@ -262,9 +262,64 @@ describe('Logic grid', () => {
 				??????????
 				??????????
 			`);
+			g.revealedAny = true;
 			g.reveal(g.cell(2, 0));
 			expectSafe(g, 2, 0);
 			// console.log(g.toString());
+		}
+	});
+
+	it('should unveil mines when you lose', () => {
+		for (let i = 0; i < 10; ++i) {
+			const g = grid(20, `
+				??-101*210
+				??-2123*21
+				*-2*11*3*1
+				1111111211
+				0000001221
+				0001233**1
+				0112***431
+				12*3343*10
+				??33*11110
+				??2*210000
+			`);
+			g.revealedAny = true;
+			g.reveal(g.cell(1, 1));
+			expectMine(g, 1, 1);
+			// console.log(g.toString());
+		}
+	});
+
+	it('should reveal the last few squares nicely', () => {
+		for (let i = 0; i < 10; ++i) {
+			const g = grid(20, `
+				??21011100
+				??*201*100
+				***2122222
+				23211*11**
+				0000111133
+				112221012*
+				2*3**213*3
+				*3*322*4*3
+				12121213*2
+				0001*10111
+			`);
+			g.revealedAny = true;
+			g.reveal(g.cell(0, 0));
+			expectSafe(g, 0, 0);
+			expectUnknown(g, 1, 0);
+			expectGrid(g, `
+				1?21011100
+				-?*201*100
+				***2122222
+				23211*11**
+				0000111133
+				112221012*
+				2*3**213*3
+				*3*322*4*3
+				12121213*2
+				0001*10111
+			`);
 		}
 	});
 });
@@ -279,6 +334,12 @@ function expectSafe(grid, x, y) {
 	const cell = grid.cell(x, y);
 	if (cell.knownMine) throw new Error(cell.reason || 'Cell marked mine');
 	if (!cell.knownSafe) throw new Error('Cell still unknown');
+}
+
+function expectUnknown(grid, x, y) {
+	const cell = grid.cell(x, y);
+	if (cell.knownMine) throw new Error(cell.reason || 'Cell marked mine');
+	if (cell.knownSafe) throw new Error(cell.reason || 'Cell marked safe');
 }
 
 function expectGrid(grid, str) {

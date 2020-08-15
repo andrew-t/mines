@@ -34,6 +34,7 @@ export default class Grid extends HTMLElement {
 				tr.appendChild(td);
 				cellement.addEventListener('contextmenu', e => {
 					e.preventDefault();
+					if (cellement.revealed) return;
 					cellement.flagged = !cellement.flagged;
 					let f = 0;
 					for (const cell of this.allCells())
@@ -50,9 +51,10 @@ export default class Grid extends HTMLElement {
 							if (neighbour.flagged) ++n;
 						const cell = this.logicGrid.cell(x, y);
 						if (n == cell.number)
-							for (const neighbour of this.neighbourCells(cellement))
+							for (const neighbour of this.neighbourCells(cellement)) {
 								if (!neighbour.flagged)
 									this.reveal(neighbour);
+							}
 						else console.log(`Not revealing as number is ${cell.number} but only ${n} flags`, cell);
 					} else
 						this.reveal(cellement);
@@ -111,8 +113,6 @@ export default class Grid extends HTMLElement {
 		if (!logicCell || logicCell.revealed) return;
 		console.log(`Revealing (${cell?.x}, ${cell?.y})`, logicCell, cell);
 		this.logicGrid.reveal(logicCell);
-		cell.revealed = true;
-		// TODO: catch unknown mines:
 		if (logicCell.knownMine) {
 			this.classList.add('gameOver');
 			this.logicGrid = this.logicGrid.generatePossibleMines();
