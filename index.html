@@ -6,6 +6,15 @@
 	<link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
-	<mines-grid width="10" height="10" mines="20"></mines-grid>
+	<div>
+		<label>Width <input type="number" min="4" max="50" id="width" value="25"></label>
+		<label>Height <input type="number" min="3" max="50" id="height" value="15"></label>
+		<label>Mines <input type="number" min="1" max="500" id="mines" value="75"></label>
+		<button type="button" id="start">Start</button>
+	</div>
+	<div id="grid">
+		<mines-grid width="25" height="15" mines="75"></mines-grid>
+	</div>
+	<script type="module" src="start.js"></script>
 </body>
 </html>

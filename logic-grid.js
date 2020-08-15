@@ -129,7 +129,12 @@ export default class LogicGrid {
 		// was there a safe space you could have clicked?
 		for (const betterCell of this.allCells())
 			if (betterCell != cell && betterCell.knownSafe && !betterCell.revealed) {
-				this.makeMine(cell, `Made a mine because the user clicked it when there was a safe space at ${betterCell.x}, ${betterCell.y}`);
+				const assumeMine = this.clone();
+				assumeMine.makeMine(assumeMine.cell(cell.x, cell.y));
+				assumeMine.updateKnowledge({ runHypotheticals: true, exhaustive: true });
+				if (assumeMine.invalid) break;
+				this.makeMine(cell,
+					`Made a mine because the user clicked it when there was a safe space at ${betterCell.x}, ${betterCell.y} (${betterCell.reason})`);
 				return;
 			}
 		
@@ -213,6 +218,7 @@ export default class LogicGrid {
 
 	generatePossibleMines() {
 		this.updateKnowledge({ runHypotheticals: true });
+		if (this.invalid) throw new Error('Grid is invalid');
 		// const beforeLoop = this.toString();
 		let iterations = 50;
 		mainLoop:
@@ -293,8 +299,12 @@ export default class LogicGrid {
 			cell.reason = reason;
 			// console.log(cell.x, cell.y, reason);
 		}
-		if (--this.missingMines == 0)
+		if (--this.missingMines == 0) {
+			for (const cell of this.allCells())
+				if (!cell.knownMine && !cell.knownSafe)
+					this.makeSafe(cell);
 			this.done = true;
+	}
 	}
 	
 	makeSafe(cell, reason) {
@@ -305,8 +315,12 @@ export default class LogicGrid {
 			cell.reason = reason;
 			// console.log(cell.x, cell.y, reason);
 		}
-		if (--this.missingSafes == 0)
+		if (--this.missingSafes == 0) {
+			for (const cell of this.allCells())
+				if (!cell.knownMine && !cell.knownSafe)
+					this.makeMine(cell);
 			this.done = true;
+	}
 	}
 	
 	updateNumbers() {

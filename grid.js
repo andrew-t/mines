@@ -35,7 +35,7 @@ export default class Grid extends HTMLElement {
 				tr.appendChild(td);
 				cellement.addEventListener('contextmenu', e => {
 					e.preventDefault();
-					if (cellement.revealed) return;
+					if (cellement.revealed || this.classList.contains('gameOver')) return;
 					cellement.flagged = !cellement.flagged;
 					let f = 0;
 					for (const cell of this.allCells())
@@ -44,7 +44,7 @@ export default class Grid extends HTMLElement {
 				});
 				cellement.addEventListener('click', e => {
 					e.preventDefault();
-					if (e.which != 1 || cellement.flagged)
+					if (e.which != 1 || cellement.flagged || this.classList.contains('gameOver'))
 						return;
 					if (cellement.revealed) {
 						let n = 0;
@@ -62,11 +62,6 @@ export default class Grid extends HTMLElement {
 				});
 			}
 		}
-
-		button(this, 'Reveal', () => {
-			for (const cell of this.allCells())
-				cell.revealed = true;
-		});
 	}
 
 	connectedCallback() {
@@ -119,7 +114,10 @@ export default class Grid extends HTMLElement {
 			this.querySelector('#gameOverReason').appendChild(
 				document.createTextNode(logicCell.reason)
 			);
-			this.logicGrid = this.logicGrid.generatePossibleMines();
+			const mines = this.logicGrid.generatePossibleMines();
+			for (const cell of this.logicGrid.allCells())
+				if (!cell.revealed && mines.cell(cell.x, cell.y).knownMine)
+					cell.knownMine = true;
 		}
 		this.render();
 	}
@@ -142,12 +140,3 @@ export default class Grid extends HTMLElement {
 }
 
 window.customElements.define('mines-grid', Grid);
-
-function button(parent, text, callback) {
-	const button = document.createElement('button');
-	button.setAttribute('type', button);
-	button.addEventListener('click', callback);
-	button.appendChild(document.createTextNode(text));
-	parent.appendChild(button);
-	return button;
-}
