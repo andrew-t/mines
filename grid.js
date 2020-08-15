@@ -15,6 +15,7 @@ export default class Grid extends HTMLElement {
 			<table><tbody></tbody></table>
 			<div><span id="flagged">0</span> mines flagged out of ${this.mineCount}</div>
 			<div><span id="revealed">0</span> safe spaces found out of ${this.width * this.height - this.mineCount}</div>
+			<div id="gameOverReason"></div>
 		`;
 		const tbody = this.querySelector('tbody'),
 			flaggedSpan = this.querySelector('#flagged');
@@ -115,6 +116,9 @@ export default class Grid extends HTMLElement {
 		this.logicGrid.reveal(logicCell);
 		if (logicCell.knownMine) {
 			this.classList.add('gameOver');
+			this.querySelector('#gameOverReason').appendChild(
+				document.createTextNode(logicCell.reason)
+			);
 			this.logicGrid = this.logicGrid.generatePossibleMines();
 		}
 		this.render();

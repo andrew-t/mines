@@ -93,3 +93,8 @@ mines-cell:not(.revealed).flagged::after {
 	background-color: green !important;
 }
 /* cheating over */
+
+#gameOverReason {
+	white-space: pre-wrap;
+	font-family: Consolas, Monaco, 'Ubuntu Mono', monospace;
+}

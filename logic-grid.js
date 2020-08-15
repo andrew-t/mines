@@ -175,7 +175,7 @@ export default class LogicGrid {
 		const ifMine = this.clone(),
 			ifSafe = this.clone();
 		ifMine.makeMine(ifMine.cell(cell.x, cell.y));
-		ifSafe.makeMine(ifSafe.cell(cell.x, cell.y));
+		ifSafe.makeSafe(ifSafe.cell(cell.x, cell.y));
 		ifMine.updateKnowledge({ runHypotheticals: true, exhaustive: true });
 		ifSafe.updateKnowledge({ runHypotheticals: true, exhaustive: true });
 		if (ifMine.invalid && ifSafe.invalid)
