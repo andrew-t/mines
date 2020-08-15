@@ -4,6 +4,8 @@ body {
 
 table {
 	border-collapse: collapse;
+	border: 5px solid #888;
+	margin: 10px 0;
 }
 
 td {
