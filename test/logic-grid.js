@@ -377,6 +377,36 @@ describe('Logic grid', () => {
 			`);
 		}
 	});
+
+	it('should handle this example', () => {
+		for (const i of [1, 2, 4, 3]) {
+			const g = grid(40, `
+				001*21111001???
+				1112*11*1113???
+				*101222122*????
+				11112*223*34???
+				001*213**3*2???
+				0122103*4223???
+				01*1002*202*???
+				23210022202*4??
+				**20002*2012*??
+				3*20003*41012??
+				2231102**1112??
+				2*3*1123211*2??
+				2*3111*100112??
+				2210011100001??
+				*100000000001??
+			`);
+			console.log(`Testing i = ${i}`)
+			const cell = g.cell(11, 2);
+			g.makeSafe(cell);
+			cell.revealed = true;
+			cell.number = i;
+			g.updateKnowledge({ runHypotheticals: true });
+			expectSafe(g, 11, 2);
+			console.log(g.toString())
+		}
+	});
 });
 
 function expectMine(grid, x, y) {

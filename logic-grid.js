@@ -353,6 +353,8 @@ export default class LogicGrid {
 
 	updateKnowledge({ runHypotheticals, exhaustive, depth }) {
 		if (!depth) depth = 1;
+		if (this.invalid)
+			throw new Error('Grid is invalid because ' + this.invalid);
 		// console.log('uk depth =', depth);
 
 		// sort cells into categories:
@@ -376,7 +378,7 @@ export default class LogicGrid {
 			}
 
 		let learnedAnything = true,
-			iterations = 10;
+			iterations = 50;
 		// just for debug:
 		// const beforeLoop = this.toString();
 		mainLoop:
