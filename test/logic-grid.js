@@ -397,14 +397,14 @@ describe('Logic grid', () => {
 				2210011100001??
 				*100000000001??
 			`);
-			console.log(`Testing i = ${i}`)
+			// console.log(`Testing i = ${i}`)
 			const cell = g.cell(11, 2);
 			g.makeSafe(cell);
 			cell.revealed = true;
 			cell.number = i;
 			g.updateKnowledge({ runHypotheticals: true });
 			expectSafe(g, 11, 2);
-			console.log(g.toString())
+			// console.log(g.toString())
 		}
 	});
 });

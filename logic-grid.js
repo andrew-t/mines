@@ -385,7 +385,9 @@ export default class LogicGrid {
 		while (learnedAnything) {
 			if (!--iterations) {
 				// console.error('Infinite loop suspected. Input:', beforeLoop);
-				throw new Error('Infinite loop suspected while learning');
+				// throw new Error('Infinite loop suspected while learning');
+				console.warn('Infinite loop suspected while learning');
+				return;
 			}
 			learnedAnything = false;
 		
