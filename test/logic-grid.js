@@ -270,6 +270,9 @@ describe('Logic grid', () => {
 		}
 	});
 
+	// This test was a specific instance that failed,
+	// but the grid is invalid so there isn't a right answer.
+	// TODO: write a better test for mine-unveiling.
 	xit('should unveil mines when you lose', () => {
 		for (let i = 0; i < 10; ++i) {
 			const g = grid(20, `
