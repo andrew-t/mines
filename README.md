@@ -12,7 +12,7 @@ So what if we went further? [This is a version of Minesweeper where you will _ne
 
 But since that would on its own make the game too easy, the flip side of this coin is that if you _can_ in theory deduce a safe move but guess anyway, the code will quietly rearrange the mines so that your unnecessary risk backfires and you lose.
 
-This game is also rigged to give you a zero on your first click rather than simply a non-mine space. To be honest this is mostly to avoid situations that are computationally difficult — this is not what I would call carefully optimised code. If I wanted to expand this I would (eg) make it precalculate things while you’re staring at the screen instead of waiting for you to choose a square and then trying to work out what to do about it.d
+**This version has been largely abandoned, because [Paweł Marczewski has written a better version](https://github.com/pwmarcz/kaboom/) which I have no particular interest in reproducing.**
 
 More importantly, I would like to make the game recognise when there’s a forced guess _coming_ — currently if there’s a 50/50 chance in one corner of the grid that you’re clearly going to have to take eventually, you have to wait until that’s _all_ there is. If you take the chance when there was a safe space available elsewhere, you’ll always lose.d
 

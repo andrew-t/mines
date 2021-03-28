@@ -10,6 +10,12 @@ body > * {
 	margin-right: auto;
 }
 
+body > a {
+	text-align: center;
+	display: block;
+	font-size: 2em;
+}
+
 table {
 	border-collapse: collapse;
 	border: 5px solid #888;

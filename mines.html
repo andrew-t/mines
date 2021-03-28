@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>andrewt.net / mines</title>
+	<script type="module" src="grid.js"></script>
+	<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+	<h1>Pure Skill Minesweeper</h1>
+	<div>
+		<label>Width <input type="number" min="4" max="50" id="width" value="15"></label>
+		<label>Height <input type="number" min="3" max="50" id="height" value="10"></label>
+		<label>Mines <input type="number" min="1" max="500" id="mines" value="30"></label>
+		<button type="button" id="start">Start</button>
+	</div>
+	<div id="grid">
+		<mines-grid width="15" height="10" mines="30"></mines-grid>
+	</div>
+	<script type="module" src="start.js"></script>
+</body>
+</html>
