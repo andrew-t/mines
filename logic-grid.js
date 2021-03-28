@@ -126,13 +126,29 @@ export default class LogicGrid {
 	}
 
 	resolveCell(cell) {
+		// First, try to find a world where this can be a mine.
+		// If there isn't one, it's safe.
+		const assumeMine = this.clone();
+		assumeMine.makeMine(assumeMine.cell(cell.x, cell.y));
+		assumeMine.updateKnowledge({ runHypotheticals: true, exhaustive: true });
+		if (assumeMine.invalid) {
+			this.makeSafe(cell,`Made save after an exhaustive search triggered by a user click`);
+			return;
+		}
+
+		// First, try to find a world where this can be safe.
+		// If there isn't one, it's a mine.
+		const assumeSafe = this.clone();
+		assumeSafe.makeSafe(assumeSafe.cell(cell.x, cell.y));
+		assumeSafe.updateKnowledge({ runHypotheticals: true, exhaustive: true });
+		if (assumeSafe.invalid) {
+			this.makeMine(cell,`Made a mine after an exhaustive search triggered by a user click`);
+			return;
+		}
+
 		// was there a safe space you could have clicked?
 		for (const betterCell of this.allCells())
 			if (betterCell != cell && betterCell.knownSafe && !betterCell.revealed) {
-				const assumeMine = this.clone();
-				assumeMine.makeMine(assumeMine.cell(cell.x, cell.y));
-				assumeMine.updateKnowledge({ runHypotheticals: true, exhaustive: true });
-				if (assumeMine.invalid) break;
 				this.makeMine(cell,
 					`Made a mine because the user clicked it when there was a safe space at ${betterCell.x}, ${betterCell.y} (${betterCell.reason})`);
 				return;
@@ -218,7 +234,7 @@ export default class LogicGrid {
 
 	generatePossibleMines() {
 		this.updateKnowledge({ runHypotheticals: true });
-		if (this.invalid) throw new Error('Grid is invalid');
+		if (this.invalid) throw new Error('Grid is invalid because ' + this.invalid);
 		// const beforeLoop = this.toString();
 		let iterations = 50;
 		mainLoop:
@@ -294,6 +310,7 @@ export default class LogicGrid {
 	makeMine(cell, reason) {
 		// if (!this.parent) console.trace(`Setting a mine`, cell);
 		if (cell.knownSafe) throw new Error('Making a safe space a mine');
+		if (cell.knownMine) return;
 		cell.knownMine = true;
 		if (reason) {
 			cell.reason = reason;
@@ -304,12 +321,13 @@ export default class LogicGrid {
 				if (!cell.knownMine && !cell.knownSafe)
 					this.makeSafe(cell);
 			this.done = true;
-	}
+		}
 	}
 	
 	makeSafe(cell, reason) {
 		// if (!this.parent) console.trace(`Marking safe`, cell);
 		if (cell.knownMine) throw new Error('Making a mine safe');
+		if (cell.knownSafe) return;
 		cell.knownSafe = true;
 		if (reason) {
 			cell.reason = reason;
@@ -320,7 +338,7 @@ export default class LogicGrid {
 				if (!cell.knownMine && !cell.knownSafe)
 					this.makeMine(cell);
 			this.done = true;
-	}
+		}
 	}
 	
 	updateNumbers() {
@@ -335,6 +353,8 @@ export default class LogicGrid {
 
 	updateKnowledge({ runHypotheticals, exhaustive, depth }) {
 		if (!depth) depth = 1;
+		if (this.invalid)
+			throw new Error('Grid is invalid because ' + this.invalid);
 		// console.log('uk depth =', depth);
 
 		// sort cells into categories:
@@ -358,14 +378,16 @@ export default class LogicGrid {
 			}
 
 		let learnedAnything = true,
-			iterations = 10;
+			iterations = 50;
 		// just for debug:
 		// const beforeLoop = this.toString();
 		mainLoop:
 		while (learnedAnything) {
 			if (!--iterations) {
 				// console.error('Infinite loop suspected. Input:', beforeLoop);
-				throw new Error('Infinite loop suspected while learning');
+				// throw new Error('Infinite loop suspected while learning');
+				console.warn('Infinite loop suspected while learning');
+				return;
 			}
 			learnedAnything = false;
 		
@@ -383,7 +405,7 @@ export default class LogicGrid {
 				const missingMines = cell.number - knownMines.length,
 					missingSafes = (neighbours.length - cell.number) - knownSafes.length;
 				if (missingMines < 0 || missingSafes < 0) {
-					this.invalid = true;
+					this.invalid = `Cell ${cell.x}, ${cell.y} has ${missingMines} missing mines and ${missingSafes} missing safe spaces`;
 					return;
 				}
 				// console.log({
@@ -465,7 +487,7 @@ export default class LogicGrid {
 				return;
 			}
 			if (this.missingMines < 0 || this.missingSafes < 0) {
-				this.invalid = true;
+				this.invalid = `The grid has ${this.missingMines} missing mines and ${this.missingSafes} missing safe spaces.`;
 				return;
 			}
 		}
