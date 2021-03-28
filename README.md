@@ -8,7 +8,7 @@ If you’re not so lucky, you might not get a solvable board. A common situation
 
 [There’s a version of Minesweeper that guarantees you never have to guess](https://www.chiark.greenend.org.uk/~sgtatham/puzzles/js/mines.html), which is very nice. It neatly solves the problem of unwinnable games, and while I find that always knowing you can make a deduction can be too big a clue, in regular Minesweeper you could even lose straight off the bat — you have to guess the first move and maybe it’ll be a mine. In this case, Windows Minesweeper quietly chooses a different arrangement of mines and pretends like you got lucky after all — but it doesn’t do that if you’re stuck at the _end_.
 
-So what if we went further? [This is a version of Minesweeper where you will _never_ be penalised when forced to guess](github.andrewt.net/mines). Any time there simply isn’t enough information to deduce a safe move, we’ll pull Windows’s trick and quietly rearrange the mines so you don’t get penalised.d
+So what if we went further? I wanted to make a version of Minesweeper where you will _never_ be penalised when forced to guess. Any time there simply isn’t enough information to deduce a safe move, we’ll pull Windows’s trick and quietly rearrange the mines so you don’t get penalised.d
 
 But since that would on its own make the game too easy, the flip side of this coin is that if you _can_ in theory deduce a safe move but guess anyway, the code will quietly rearrange the mines so that your unnecessary risk backfires and you lose.
 
